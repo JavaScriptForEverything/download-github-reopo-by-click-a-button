@@ -24,16 +24,8 @@ yarn start
 ### Download Github Repositories
 Download Github Repository by clicking a button, just need your github `username` to fetch all reposities first
 
+- See the project preview as animation
+- Click on the image to show the video on youtube
 
-
-
-<img 
-	width = "100%"
-	src="https://github.com/JavaScriptForEverything/download-github-reopo-by-click-a-button/blob/master/preview.gif?raw=true"
-	alt="Project Preview"
-/>
-
-
-YouTube Video Link: https://youtu.be/Cwn69cw8Pl8
 
 [![Project Preview](https://github.com/JavaScriptForEverything/download-github-reopo-by-click-a-button/blob/master/preview.gif?raw=true)](https://youtu.be/Cwn69cw8Pl8)
