@@ -23,6 +23,9 @@ export const downloadRepoByName = catchAsync( async (req, res, next) => {
 	const { name: reponame ='' } = req.params as { name: string }
 	const { username = '' } = req.body as { username: string }
 	
+	if( !username ) return next(appError('username is empty'))
+	if( !reponame ) return next(appError('reponame is empty'))
+
 	const buf = await downloadRepo({ username, reponame })
 
 	res.set('content-type', 'application/octet-stream')

@@ -23,6 +23,7 @@ const Home = () => {
 	const [ fields, setFields ] = useState({ username: '' })
 	const [ repos, setRepos ] = useState<string[]>([])
 	const [ errorMessage, setErrorMessage ] = useState('')
+	const [ repoErrorMessage, setRepoErrorMessage ] = useState('')
 
 	const [ isDownloadingRepos, setIsDownloadingRepos ] = useState(false)
 	const [ selectedRepo, setSelectedRepo ] = useState('')
@@ -32,9 +33,11 @@ const Home = () => {
 	}
 	const submitHandler = async(evt: React.FocusEvent<HTMLFormElement>) => {
 		evt.preventDefault()
-		setIsDownloadingRepos(true)
 
 		try {
+			setIsDownloadingRepos(true)
+			setErrorMessage('')
+
 			const res = await fetch(`${NEXT_PUBLIC_BASE_URL}/api/repos?id=1`, {
 				method: 'post',
 				body: JSON.stringify(fields),
@@ -51,22 +54,36 @@ const Home = () => {
 			if( !result.status ) throw new Error(result.message)
 
 			// if request not success then data will be empty, and result.message will be the error
-			if(result.message) return setErrorMessage(result.message)
+			if(result.message) {
+				setErrorMessage(result.message)
+				setIsDownloadingRepos(false)
+				return
+			}
 
 			setRepos(result.data)
 			setIsDownloadingRepos(false)
-			setFields({ ...fields, username: ''})
+
+			/* username must require in body for later use so bellow command reset user to null
+
+							setFields({ ...fields, username: ''}) 		
+				
+				That is a problems, because later for every request we need 'username' and 'reponame'
+				if we need to empty the input field then we have to save the username into another
+				state variable and then we can set field to empth.
+			*/ 
 
 
 		} catch (err: any) {
+			setIsDownloadingRepos(false)
 			console.log(err)
 		}
 	}
 
 	const repoDownloadHandler = (name: string) => async (evt: React.MouseEvent<HTMLButtonElement>) => {
-		setSelectedRepo(name)
-
 		try {
+			setSelectedRepo(name)
+			setRepoErrorMessage('')
+
 			const res = await fetch(`${NEXT_PUBLIC_BASE_URL}/api/repos/${name}`, {
 				method: 'post',
 				body: JSON.stringify(fields),
@@ -75,6 +92,13 @@ const Home = () => {
 					'accept': 'application/octet-stream',
 				}
 			})
+
+
+			if( !res.ok ) {
+				const { message } = await res.json()
+				setRepoErrorMessage(message)
+				throw new Error(message)
+			}
 
 			const blob = await res.blob()
 			await download(blob, name)
@@ -129,10 +153,14 @@ const Home = () => {
 
 				<ul>
 					{repos.map((repo, key) => (
-						<li key={repo}>{repo} <button 
-							onClick={repoDownloadHandler(repo)}
-							disabled={ selectedRepo === repo }
-						>{selectedRepo === repo ? 'Downloading ...' : 'Download' }</button></li>
+						<li key={repo}>{repo} 
+							<button 
+								onClick={repoDownloadHandler(repo)}
+								disabled={ selectedRepo === repo }
+							>{selectedRepo === repo ? 'Downloading ...' : 'Download' }</button>
+							{selectedRepo === repo && <small style={{ color: 'red' }}>{repoErrorMessage}</small>
+							}
+						</li>
 					))}
 				</ul>
 		</>
